@@ -4,6 +4,7 @@ import * as debugBuilder from 'debug';
 import * as _ from 'lodash';
 import { IWsdlBaseOptions } from '../types';
 import { splitQName, TNS_PREFIX } from '../utils';
+import { convertFromXSDToJSONSchema } from '../json-schema';
 
 const debug = debugBuilder('node-soap');
 
@@ -886,10 +887,16 @@ export class OperationElement extends Element {
   public description(definitions: DefinitionsElement) {
     const inputDesc = this.input ? this.input.description(definitions) : null;
     const outputDesc = this.output ? this.output.description(definitions) : null;
-    return {
-      input: inputDesc && inputDesc[Object.keys(inputDesc)[0]],
-      output: outputDesc && outputDesc[Object.keys(outputDesc)[0]],
-    };
+    const result = {};
+    if (inputDesc){
+      result['input'] = inputDesc[Object.keys(inputDesc)[0]];
+      result['inputJSONSchema'] = convertFromXSDToJSONSchema(result['input']);
+    }
+    if(outputDesc){
+      result['output'] = outputDesc[Object.keys(outputDesc)[0]];
+      result['outputJSONSchema'] = convertFromXSDToJSONSchema(result['output']);
+    }
+    return result;
   }
 }
 

@@ -8,9 +8,21 @@ const isIgnoredKey = (key: string) => IGNORED_KEYS.includes(key);
 const isArrayKey = (key: string) => key.endsWith('[]');
 const getArrayKeyName = (key: string) => key.replace('[]','');
 
-export const getJSONSchemaProperty = (xsdKey: string) => XSD2JSON_TYPE_MAP[xsdKey];
+/**
+ * @function getJSONSchemaObjectByTheXSDKey
+ * get by the given xsd key to json-schema object.
+ * @param xsdKey string 
+ * @returns JSONSchema7 json-schema object
+ */
+export const getJSONSchemaByTheXSDKey = (xsdKey: string) => XSD2JSON_TYPE_MAP[xsdKey];
 
-export function getJSONSchema(xsdObj: any) {
+/**
+ * @function getJSONSchema
+ * convert given xsd object to json-schema object.
+ * @param xsdObj object
+ * @returns JSONSchema7 json-schema object
+ */
+export function convertFromXSDToJSONSchema(xsdObj: any) {
 	const result: JSONSchema7 = { 
 		type: 'object',
 		properties: {},
@@ -24,14 +36,14 @@ export function getJSONSchema(xsdObj: any) {
 			const arrayKeyName = getArrayKeyName(key);
 			result.properties[arrayKeyName] = { 
 				type: 'array',  
-				items: typeOfProperty !== 'object' ? getJSONSchemaProperty(propValue) : getJSONSchema(propValue)
+				items: typeOfProperty !== 'object' ? getJSONSchemaByTheXSDKey(propValue) : convertFromXSDToJSONSchema(propValue)
 			}
 			result.required.push(arrayKeyName);
 		} else if (typeOfProperty === 'object') {
-			result.properties[key] = getJSONSchema(propValue);
+			result.properties[key] = convertFromXSDToJSONSchema(propValue);
 			result.required.push(key);
 		}else if ( typeOfProperty === 'string' ) {
-			result.properties[key] = getJSONSchemaProperty(propValue);
+			result.properties[key] = getJSONSchemaByTheXSDKey(propValue);
 			result.required.push(key);
 		}
 	});
